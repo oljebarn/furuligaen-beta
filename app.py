@@ -319,22 +319,22 @@ def getGwRoundPoints(teamId):
     r = requests.get(url)
     json = r.json()
     teamPoints_df = pd.DataFrame(json['current'])
-
+    
     livePlayerPoints = getLivePlayerPoints(teamId)
-
+    
     live = (teamPoints_df['points'][gws:(thisGw - 1)].sum() + livePlayerPoints - teamPoints_df['event_transfers_cost'][gws:gwe].sum() )
-
+    
     total = teamPoints_df.iat[(thisGw - 2), 2] + livePlayerPoints
-
-    return [total, live]
+    
+    return [total, live, livePlayerPoints]
 
 def getTeamsPoints():
     tabell = []
     for team in teamsList:
         tabell.append(getGwRoundPoints(team))
-
+    
     tabell_df = pd.DataFrame(tabell)
-    ny_tabell = tabell_df.rename(columns={0: "Total", 1: "GW"})
+    ny_tabell = tabell_df.rename(columns={0: "Total", 1: "GW", 2: "GWLive"})
     return ny_tabell
 
 def getTabell():
@@ -345,12 +345,12 @@ def getTabell():
     league_df = pd.DataFrame(standings_df['results'].values.tolist())
 
     tabell = getTeamsPoints()
-
+    
     tabell.insert(0, 'Navn', league_df[['player_name']], True)
     tabellSort = tabell.sort_values ('GW', ascending=False)
     tabellSort.insert(0, "#", range(1, len(tabell) + 1), True)
-    tabellSort.columns = ['#', 'Navn', 'Totalt', gwHeader()]
-
+    tabellSort.columns = ['#', 'Navn', 'Totalt', gwHeader(), 'GW'+str(thisGw)]
+    
 
     return tabellSort
 
