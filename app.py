@@ -4,7 +4,7 @@ from flask import Flask, render_template
 import pandas as pd
 import requests
 
-# Genererer tabell
+# Finn nåværende GW
 
 def checkGameweek():
     url3 = 'https://fantasy.premierleague.com/api/bootstrap-static/'
@@ -50,6 +50,7 @@ def gwHeader():
 # Poeng i tabell
 thisGw = checkGameweek()
 
+# Auto subs
 def getBootstrapTeams():
     url4 = 'https://fantasy.premierleague.com/api/bootstrap-static/'
     r4 = requests.get(url4)
@@ -137,12 +138,13 @@ def getAutoSubs(teamId):
 
     for i in range(len(spillerListe[0:11])):
         starter = spillerListe.iat[i,0]
+        spilteIkke = didNotPlay(starter)
 
         if not spilteIkke:
             break
 
         spillerpos = teams.at[starter, 'element_type']
-        spilteIkke = didNotPlay(starter)
+
         erKaptein = spillerListe.iat[i, 2]
 
         # sjekke kaptein
@@ -205,7 +207,10 @@ def getAutoSubs(teamId):
                         countAtt += 1
                         break
 
-    return spillerListe[0:11]
+    return spillerListe[0:11][['element', 'multiplier']]
+
+
+# Live bonus
 
 def getBonusPoints(playerId):
     url2 = 'https://fantasy.premierleague.com/api/fixtures/?event=' + str(thisGw)
@@ -268,6 +273,16 @@ def getLiveBonusList(teamId):
 
 
 
+def getTeamList():
+    url2 = 'https://fantasy.premierleague.com/api/leagues-classic/627607/standings/'
+    r2 = requests.get(url2)
+    json2 = r2.json()
+    standings_df = pd.DataFrame(json2['standings'])
+    league_df = pd.DataFrame(standings_df['results'].values.tolist())
+    return league_df ['entry']
+
+teamsList = getTeamList()
+
 def getAllPlayerList():
     url = 'https://fantasy.premierleague.com/api/event/' + str(thisGw) + '/live/'
     r = requests.get(url)
@@ -279,8 +294,10 @@ def getAllPlayerList():
     liveTotPoints_df.insert(0,'id', liveId, True)
     return liveTotPoints_df
 
-
 liveTotPoints = getAllPlayerList()
+
+
+
 def getLivePlayerPoints(teamId):
     slim_picks = getAutoSubs(teamId)
 
@@ -289,7 +306,8 @@ def getLivePlayerPoints(teamId):
     poeng = 0
     for i in range(len(slim_picks)):
         tempId = slim_picks.iat[i,0]
-        poeng += (liveTotPoints.iat[tempId - 1, 1] + slim_picks.iat[i, 4] - liveTotPoints.iat[tempId - 1, 2]) * slim_picks.iat[i, 1]
+        poeng += (liveTotPoints.iat[tempId - 1, 1] + slim_picks.iat[i, 2] -
+                  liveTotPoints.iat[tempId - 1, 2]) * slim_picks.iat[i, 1]
 
     return poeng
 
@@ -302,41 +320,22 @@ def getGwRoundPoints(teamId):
     json = r.json()
     teamPoints_df = pd.DataFrame(json['current'])
 
-    result = (teamPoints_df['points'][gws:(thisGw - 1)].sum() + getLivePlayerPoints(teamId) - teamPoints_df['event_transfers_cost'][gws:gwe].sum() )
+    livePlayerPoints = getLivePlayerPoints(teamId)
 
-    return result
+    live = (teamPoints_df['points'][gws:(thisGw - 1)].sum() + livePlayerPoints - teamPoints_df['event_transfers_cost'][gws:gwe].sum() )
 
-def getTeamList():
-    url2 = 'https://fantasy.premierleague.com/api/leagues-classic/627607/standings/'
-    r2 = requests.get(url2)
-    json2 = r2.json()
-    standings_df = pd.DataFrame(json2['standings'])
-    league_df = pd.DataFrame(standings_df['results'].values.tolist())
-    return league_df ['entry']
+    total = teamPoints_df.iat[(thisGw - 2), 2] + livePlayerPoints
 
-teamsList = getTeamList()
+    return [total, live]
 
 def getTeamsPoints():
     tabell = []
     for team in teamsList:
         tabell.append(getGwRoundPoints(team))
-    return tabell
 
-def getTotalLivePoints(teamId):
-    url = 'https://fantasy.premierleague.com/api/entry/' + str(teamId) + '/history/'
-    r = requests.get(url)
-    json = r.json()
-    teamPoints_df = pd.DataFrame(json['current'])
-
-    result = (teamPoints_df['points'][0:(thisGw - 1)].sum() + getLivePlayerPoints(teamId) - teamPoints_df['event_transfers_cost'][0:thisGw].sum())
-
-    return result
-
-def getTotalLiveTeamsPoints():
-    tabell = []
-    for team in teamsList:
-        tabell.append(getTotalLivePoints(team))
-    return tabell
+    tabell_df = pd.DataFrame(tabell)
+    ny_tabell = tabell_df.rename(columns={0: "Total", 1: "GW"})
+    return ny_tabell
 
 def getTabell():
     url2 = 'https://fantasy.premierleague.com/api/leagues-classic/627607/standings/'
@@ -345,12 +344,13 @@ def getTabell():
     standings_df = pd.DataFrame(json2['standings'])
     league_df = pd.DataFrame(standings_df['results'].values.tolist())
 
-    tabell = league_df [['player_name']]
-    tabell.insert(1, 'Totalt', getTotalLiveTeamsPoints(), True)
-    tabell.insert(2, gwHeader(), getTeamsPoints(), True)
-    tabellSort = tabell.sort_values (gwHeader(), ascending=False)
+    tabell = getTeamsPoints()
+
+    tabell.insert(0, 'Navn', league_df[['player_name']], True)
+    tabellSort = tabell.sort_values ('GW', ascending=False)
     tabellSort.insert(0, "#", range(1, len(tabell) + 1), True)
     tabellSort.columns = ['#', 'Navn', 'Totalt', gwHeader()]
+
 
     return tabellSort
 
@@ -402,28 +402,11 @@ def getWinners():
 
 app = Flask(__name__)
 app.config["DEBUG"] = True
-
-
-
-@app.before_request
-def before_request():
+    
+@app.route("/")
+def index():
     tabell = getTabell()
     vinner = getWinners()
     result = render_template('main_page.html', tables=[tabell.to_html(classes='tabeller'), vinner.to_html(classes='vinnere')],
     titles = ['na', 'Furuligaen', 'Vinnere'])
     return result
-
-@app.route("/")
-def index():
-    return before_request()
-
-
-
-
-
-
-
-
-
-
-
