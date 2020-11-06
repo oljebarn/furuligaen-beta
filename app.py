@@ -323,12 +323,15 @@ def getGwRoundPoints(teamId):
     json = r.json()
     teamPoints_df = pd.DataFrame(json['current'])
     
-    livePlayerPoints = getLivePlayerPoints(teamId) - teamPoints_df['event_transfers_cost'][thisGw-1]
+    livePlayerPoints = getLivePlayerPoints(teamId) 
     
-    liveRound = (teamPoints_df['points'][gws:(thisGw - 1)].sum() + livePlayerPoints - teamPoints_df['event_transfers_cost'][gws:gwe - 1].sum() )
-    total = teamPoints_df.iat[(thisGw - 2), 2] + livePlayerPoints
+    livePlayerPoints_trans = livePlayerPoints - teamPoints_df['event_transfers_cost'][thisGw-1]
     
-    return [total, liveRound, livePlayerPoints]
+    ### CHECK GWEND MULIG BUG!!!!
+    liveRound = (teamPoints_df['points'][gws:(thisGw - 1)].sum() + livePlayerPoints - teamPoints_df['event_transfers_cost'][gws:gwe].sum() )
+    total = teamPoints_df.iat[(thisGw - 2), 2] + livePlayerPoints_trans
+    
+    return [total, liveRound, livePlayerPoints_trans]
 
 def getTeamsPoints():
     tabell = []
