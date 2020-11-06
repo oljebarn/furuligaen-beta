@@ -219,53 +219,56 @@ def getBonusPoints(playerId):
     fixtures_df = pd.DataFrame(json2)
     stats_df_len = pd.DataFrame(fixtures_df['stats'].values.tolist())
     playerTeam = teams.at[playerId, 'team']
-
+    
     bonus = 0
-
+    
     for i in range(len(stats_df_len)):
         try:
             if fixtures_df.loc[(fixtures_df.team_a == playerTeam)].iat[0,6] < 60 or fixtures_df.loc[(fixtures_df.team_h == playerTeam)].iat[0,6] < 60:
                 break
         except:
             pass
+            
+        try:
+            
+            if playerTeam == fixtures_df.at[i, 'team_a'] or playerTeam == fixtures_df.at[i, 'team_h']:
+                stats_df = pd.DataFrame(fixtures_df['stats'].iloc[i]) # <- iloc[i]
 
+                stats_a = pd.DataFrame(stats_df.loc[9,'a'])
+                stats_h = pd.DataFrame(stats_df.loc[9,'h'])
 
-        if playerTeam == fixtures_df.at[i, 'team_a'] or playerTeam == fixtures_df.at[i, 'team_h']:
-            stats_df = pd.DataFrame(fixtures_df['stats'].iloc[i]) # <- iloc[i]
-
-            stats_a = pd.DataFrame(stats_df.loc[9,'a'])
-            stats_h = pd.DataFrame(stats_df.loc[9,'h'])
-
-            samlet = stats_h.append(stats_a)
-            sort = samlet.sort_values(by=['value'], ascending=False)
-            ferdig = sort.reset_index(drop=True)
-
-            bps = ferdig[0:6]
-
-            if bps.iat[0,0] == bps.iat[1,0] and (playerId == bps.iat[0,1] or playerId == bps.iat[1,1]):
-                bonus = 3
-                break
-            if bps.iat[1,1] == bps.iat[2,0] and (playerId == bps.iat[1,1] or playerId == bps.iat[2,1]):
-                bonus = 2
-                break
-            if bps.iat[2,1] == bps.iat[3,0] and (playerId == bps.iat[2,1] or playerId == bps.iat[3,1]):
-                bonus = 1
-                break
-            if playerId == bps.iat[0,1]:
-                bonus = 3
-                break
-            if playerId == bps.iat[1,1]:
-                bonus = 2
-                break
-            if playerId == bps.iat[2,1]:
-                bonus = 1
-                break
+                samlet = stats_h.append(stats_a)
+                sort = samlet.sort_values(by=['value'], ascending=False)
+                ferdig = sort.reset_index(drop=True)
+            
+                bps = ferdig[0:6]
+            
+                if bps.iat[0,0] == bps.iat[1,0] and (playerId == bps.iat[0,1] or playerId == bps.iat[1,1]):
+                    bonus = 3
+                    break
+                if bps.iat[1,1] == bps.iat[2,0] and (playerId == bps.iat[1,1] or playerId == bps.iat[2,1]):
+                    bonus = 2
+                    break
+                if bps.iat[2,1] == bps.iat[3,0] and (playerId == bps.iat[2,1] or playerId == bps.iat[3,1]):
+                    bonus = 1
+                    break
+                if playerId == bps.iat[0,1]:
+                    bonus = 3
+                    break
+                if playerId == bps.iat[1,1]:
+                    bonus = 2
+                    break
+                if playerId == bps.iat[2,1]:
+                    bonus = 1
+                    break
+        except:
+            pass
     return bonus
 
 def getLiveBonusList(teamId):
     picks = getAutoSubs(teamId)
     bonusPoeng = []
-
+    
     for ids in picks['element']:
         bonusPoeng.append(getBonusPoints(ids))
 
