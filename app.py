@@ -219,18 +219,18 @@ def getBonusPoints(playerId):
     fixtures_df = pd.DataFrame(json2)
     stats_df_len = pd.DataFrame(fixtures_df['stats'].values.tolist())
     playerTeam = teams.at[playerId, 'team']
-    
+
     bonus = 0
-    
+
     for i in range(len(stats_df_len)):
         try:
             if fixtures_df.loc[(fixtures_df.team_a == playerTeam)].iat[0,6] < 60 or fixtures_df.loc[(fixtures_df.team_h == playerTeam)].iat[0,6] < 60:
                 break
         except:
             pass
-            
+
         try:
-            
+
             if playerTeam == fixtures_df.at[i, 'team_a'] or playerTeam == fixtures_df.at[i, 'team_h']:
                 stats_df = pd.DataFrame(fixtures_df['stats'].iloc[i]) # <- iloc[i]
 
@@ -240,16 +240,16 @@ def getBonusPoints(playerId):
                 samlet = stats_h.append(stats_a)
                 sort = samlet.sort_values(by=['value'], ascending=False)
                 ferdig = sort.reset_index(drop=True)
-            
+
                 bps = ferdig[0:6]
-            
+
                 if bps.iat[0,0] == bps.iat[1,0] and (playerId == bps.iat[0,1] or playerId == bps.iat[1,1]):
                     bonus = 3
                     break
-                if bps.iat[1,1] == bps.iat[2,0] and (playerId == bps.iat[1,1] or playerId == bps.iat[2,1]):
+                if bps.iat[1,0] == bps.iat[2,0] and (playerId == bps.iat[1,1] or playerId == bps.iat[2,1]):
                     bonus = 2
                     break
-                if bps.iat[2,1] == bps.iat[3,0] and (playerId == bps.iat[2,1] or playerId == bps.iat[3,1]):
+                if bps.iat[2,0] == bps.iat[3,0] and (playerId == bps.iat[2,1] or playerId == bps.iat[3,1]):
                     bonus = 1
                     break
                 if playerId == bps.iat[0,1]:
@@ -268,7 +268,7 @@ def getBonusPoints(playerId):
 def getLiveBonusList(teamId):
     picks = getAutoSubs(teamId)
     bonusPoeng = []
-    
+
     for ids in picks['element']:
         bonusPoeng.append(getBonusPoints(ids))
 
@@ -284,7 +284,7 @@ def getTeamList():
     league_df = pd.DataFrame(standings_df['results'].values.tolist())
     return league_df ['entry']
 
-teamsList = getTeamList()
+
 
 def getAllPlayerList():
     url = 'https://fantasy.premierleague.com/api/event/' + str(thisGw) + '/live/'
@@ -297,13 +297,13 @@ def getAllPlayerList():
     liveTotPoints_df.insert(0,'id', liveId, True)
     return liveTotPoints_df
 
-liveTotPoints = getAllPlayerList()
+
 
 
 
 def getLivePlayerPoints(teamId):
     slim_picks = getAutoSubs(teamId)
-
+    liveTotPoints = getAllPlayerList()
     slim_picks['live_bonus'] = getLiveBonusList(teamId)
 
     poeng = 0
@@ -322,22 +322,22 @@ def getGwRoundPoints(teamId):
     r = requests.get(url)
     json = r.json()
     teamPoints_df = pd.DataFrame(json['current'])
-    
-    livePlayerPoints = getLivePlayerPoints(teamId) 
-    
+
+    livePlayerPoints = getLivePlayerPoints(teamId)
+
     livePlayerPoints_trans = livePlayerPoints - teamPoints_df['event_transfers_cost'][thisGw-1]
-    
-    ### CHECK GWEND MULIG BUG!!!!
+
     liveRound = (teamPoints_df['points'][gws:(thisGw - 1)].sum() + livePlayerPoints - teamPoints_df['event_transfers_cost'][gws:gwe].sum() )
     total = teamPoints_df.iat[(thisGw - 2), 2] + livePlayerPoints_trans
-    
+
     return [total, liveRound, livePlayerPoints_trans]
 
+#teamsList = getTeamList()
 def getTeamsPoints():
     tabell = []
-    for team in teamsList:
+    for team in getTeamList():
         tabell.append(getGwRoundPoints(team))
-    
+
     tabell_df = pd.DataFrame(tabell)
     ny_tabell = tabell_df.rename(columns={0: "Total", 1: "GW", 2: "GWLive"})
     return ny_tabell
@@ -350,12 +350,12 @@ def getTabell():
     league_df = pd.DataFrame(standings_df['results'].values.tolist())
 
     tabell = getTeamsPoints()
-    
+
     tabell.insert(0, 'Navn', league_df[['player_name']], True)
     tabellSort = tabell.sort_values ('GW', ascending=False)
     tabellSort.insert(0, "#", range(1, len(tabell) + 1), True)
     tabellSort.columns = ['#', 'Navn', 'Totalt', gwHeader(), 'GW'+str(thisGw)]
-    
+
 
     return tabellSort
 
@@ -407,7 +407,7 @@ def getWinners():
 
 app = Flask(__name__)
 app.config["DEBUG"] = True
-    
+
 @app.route("/")
 def index():
     tabell = getTabell()
