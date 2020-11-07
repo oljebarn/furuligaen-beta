@@ -299,7 +299,7 @@ def getAllPlayerList():
 
 def getLivePlayerPoints(teamId):
     slim_picks = getAutoSubs(teamId)
-    liveTotPoints = getAllPlayerList()
+    #liveTotPoints = getAllPlayerList()
     slim_picks['live_bonus'] = getLiveBonusList(teamId)
 
     poeng = 0
@@ -406,6 +406,7 @@ gwStarter = getGwStart()
 
 teams = getBootstrapTeams()
 minutes = getMinutesPlayed()
+liveTotPoints = getAllPlayerList()
 
 gws = gwStart()
 gwe = gwEnd()
