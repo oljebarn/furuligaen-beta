@@ -296,18 +296,20 @@ def getAllPlayerList():
     liveTotPoints_df.insert(0,'id', liveId, True)
     return liveTotPoints_df
 
+liveTotPoints = getAllPlayerList()
+
 def getLivePlayerPoints(teamId):
     slim_picks = getAutoSubs(teamId)
-    liveTotPoints = getAllPlayerList()
+    
     slim_picks['live_bonus'] = getLiveBonusList(teamId)
-
+    
     poeng = 0
     for i in range(len(slim_picks)):
         tempId = slim_picks.iat[i,0]
-        poeng += (liveTotPoints.iat[tempId - 1, 1] + slim_picks.iat[i, 2] -
-                  liveTotPoints.iat[tempId - 1, 2]) * slim_picks.iat[i, 1]
-
-    return poeng
+        poeng += (liveTotPoints.iat[tempId - 1, 1] + slim_picks.iat[i, 2] - 
+                  liveTotPoints.iat[tempId - 1, 2]) * slim_picks.iat[i, 1] 
+        
+    return poeng    
 
 gws = gwStart()
 gwe = gwEnd()
