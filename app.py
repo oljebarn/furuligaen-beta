@@ -410,8 +410,8 @@ app.config["DEBUG"] = True
 
 @app.route("/")
 def index():
-    tabell = getTabell()
-    vinner = getWinners()
-    result = render_template('main_page.html', tables=[tabell.to_html(classes='tabeller'), vinner.to_html(classes='vinnere')],
+    #tabell = getTabell()
+    #vinner = getWinners()
+    result = render_template('main_page.html', tables=[getTabell().to_html(classes='tabeller'), getWinners().to_html(classes='vinnere')],
     titles = ['na', 'Furuligaen', 'Vinnere'])
     return result
