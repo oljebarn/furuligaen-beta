@@ -223,11 +223,11 @@ def getBonusPoints(playerId):
     bonus = 0
 
     for i in range(len(stats_df_len)):
-        try:
-            if fixtures_df.loc[(fixtures_df.team_a == playerTeam)].iat[0,6] < 60 or fixtures_df.loc[(fixtures_df.team_h == playerTeam)].iat[0,6] < 60:
-                break
-        except:
-            pass
+        #try:
+            #if fixtures_df.loc[(fixtures_df.team_a == playerTeam)].iat[0,6] < 60 or fixtures_df.loc[(fixtures_df.team_h == playerTeam)].iat[0,6] < 60:
+                #break
+        #except:
+            #pass
 
         try:
 
