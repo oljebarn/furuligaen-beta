@@ -285,7 +285,6 @@ def getTeamList():
     return league_df ['entry']
 
 
-
 def getAllPlayerList():
     url = 'https://fantasy.premierleague.com/api/event/' + str(thisGw) + '/live/'
     r = requests.get(url)
@@ -296,10 +295,6 @@ def getAllPlayerList():
     liveTotPoints_df = pd.DataFrame(stats_df[['total_points', 'bonus']])
     liveTotPoints_df.insert(0,'id', liveId, True)
     return liveTotPoints_df
-
-
-
-
 
 def getLivePlayerPoints(teamId):
     slim_picks = getAutoSubs(teamId)
@@ -322,24 +317,24 @@ def getGwRoundPoints(teamId):
     r = requests.get(url)
     json = r.json()
     teamPoints_df = pd.DataFrame(json['current'])
-
-    livePlayerPoints = getLivePlayerPoints(teamId)
-
+    
+    livePlayerPoints = getLivePlayerPoints(teamId) 
+    
     livePlayerPoints_trans = livePlayerPoints - teamPoints_df['event_transfers_cost'][thisGw-1]
-
+    
     liveRound = (teamPoints_df['points'][gws:(thisGw - 1)].sum() + livePlayerPoints - teamPoints_df['event_transfers_cost'][gws:gwe].sum() )
     total = teamPoints_df.iat[(thisGw - 2), 2] + livePlayerPoints_trans
-
-    return [total, liveRound, livePlayerPoints_trans]
+    
+    return [total, livePlayerPoints_trans, liveRound]
 
 #teamsList = getTeamList()
 def getTeamsPoints():
     tabell = []
     for team in getTeamList():
         tabell.append(getGwRoundPoints(team))
-
+    
     tabell_df = pd.DataFrame(tabell)
-    ny_tabell = tabell_df.rename(columns={0: "Total", 1: "GW", 2: "GWLive"})
+    ny_tabell = tabell_df.rename(columns={0: "Total", 1: "GWLive", 2: "Round"})
     return ny_tabell
 
 def getTabell():
@@ -350,12 +345,12 @@ def getTabell():
     league_df = pd.DataFrame(standings_df['results'].values.tolist())
 
     tabell = getTeamsPoints()
-
+    
     tabell.insert(0, 'Navn', league_df[['player_name']], True)
-    tabellSort = tabell.sort_values ('GW', ascending=False)
+    tabellSort = tabell.sort_values ('Round', ascending=False)
     tabellSort.insert(0, "#", range(1, len(tabell) + 1), True)
-    tabellSort.columns = ['#', 'Navn', 'Totalt', gwHeader(), 'GW'+str(thisGw)]
-
+    tabellSort.columns = ['#', 'Navn', 'Totalt', 'GW'+str(thisGw), gwHeader()]
+    
 
     return tabellSort
 
