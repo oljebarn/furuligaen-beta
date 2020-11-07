@@ -15,7 +15,6 @@ def checkGameweek():
     currentGw = iscurrent.loc[(iscurrent.is_current == True)].iat[0,0]
     return currentGw
 
-thisGw = checkGameweek()
 
 def getGwStart():
     gw = checkGameweek()
@@ -30,7 +29,7 @@ def getGwStart():
         return 37
 
 # Minus 1 for å treffe index 0
-gwStarter = getGwStart()
+
 
 def gwStart():
     return gwStarter - 1
@@ -48,7 +47,7 @@ def gwHeader():
     return "GW " + str(gwStarter) + " -> " + str(gwE)
 
 # Poeng i tabell
-thisGw = checkGameweek()
+
 
 # Auto subs
 def getBootstrapTeams():
@@ -77,7 +76,7 @@ def getGwFixtures():
     allFix.set_index('team_h', inplace = True)
     return allFix
 
-allFix = getGwFixtures()
+
 
 def getMinutesPlayed():
     url1 = 'https://fantasy.premierleague.com/api/event/' + str(thisGw) + '/live/'
@@ -92,9 +91,6 @@ def getMinutesPlayed():
 
     minutes.set_index('id', inplace = True)
     return minutes
-
-teams = getBootstrapTeams()
-minutes = getMinutesPlayed()
 
 def didNotPlay(playerId):
     teamId = teams.at[playerId, 'team']
@@ -314,8 +310,6 @@ def getLivePlayerPoints(teamId):
 
     return poeng
 
-gws = gwStart()
-gwe = gwEnd()
 
 def getGwRoundPoints(teamId):
     url = 'https://fantasy.premierleague.com/api/entry/' + str(teamId) + '/history/'
@@ -358,6 +352,8 @@ def getTabell():
 
 
     return tabellSort
+
+
 
 # Rundevinnere
 def getRoundPoints(slutter):
@@ -404,6 +400,15 @@ def getWinners():
     result.columns = ['Runde', 'Vinner', 'Poeng']
     return result
 
+thisGw = checkGameweek()
+allFix = getGwFixtures()
+gwStarter = getGwStart()
+
+teams = getBootstrapTeams()
+minutes = getMinutesPlayed()
+
+gws = gwStart()
+gwe = gwEnd()
 
 app = Flask(__name__)
 app.config["DEBUG"] = True
