@@ -296,10 +296,12 @@ def getAllPlayerList():
     liveTotPoints_df.insert(0,'id', liveId, True)
     return liveTotPoints_df
 
-liveTotPoints = getAllPlayerList()
+
 
 def getLivePlayerPoints(teamId):
     slim_picks = getAutoSubs(teamId)
+    
+    liveTotPoints = getAllPlayerList()
     
     slim_picks['live_bonus'] = getLiveBonusList(teamId)
     
