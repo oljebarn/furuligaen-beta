@@ -110,8 +110,6 @@ def getAutoSubs(teamId):
     spillerListeOrg = picks_df[['element', 'multiplier', 'is_captain', 'is_vice_captain']]
     
     spillerListe = spillerListeOrg.copy()
-    
-    benk = spillerListe[12:15]
 
     minDef = 3
     minMid = 3
@@ -162,15 +160,17 @@ def getAutoSubs(teamId):
             if not didNotPlay(keeperbytte):
                 spillerListe.iat[i, 0], spillerListe.iat[11, 0] = spillerListe.iat[11, 0], spillerListe.iat[i, 0]
                 spillerListe.iat[i,1] = 1
-
+                
         # bytte fra benken
         if spillerpos != gk and spilteIkke:
+            
             spillerListe.iat[i,1] = 0
+            
             if countDef >= minDef and countMid >= minMid and countAtt >= minAtt:
                 for (j) in range (len(spillerListe[12:15])):
                     if not didNotPlay(spillerListe[12:15].iat[j,0]):
                         innbytterPos = teams.at[spillerListe[12:15].iat[j,0], 'element_type']
-                        spillerListe.iat[i,0], spillerListe[12:15].iat[j,0] =spillerListe[12:15].iat[j,0], spillerListe.iat[i,0]
+                        spillerListe.iat[i,0], spillerListe[12:15].iat[j,0] = spillerListe[12:15].iat[j,0], spillerListe.iat[i,0] 
                         spillerListe.iat[i,1] = 1
 
                         if innbytterPos == defs:
@@ -192,7 +192,7 @@ def getAutoSubs(teamId):
 
             if countMid < minMid:
                 for (j) in range (len(spillerListe[12:15])):
-                    innbytterPos = teams.at[spillerListe.iat[j,0], 'element_type']
+                    innbytterPos = teams.at[spillerListe[12:15].iat[j,0], 'element_type']
                     if innbytterPos == mids and not didNotPlay(spillerListe[12:15].iat[j,0]):
                         spillerListe.iat[i,0], spillerListe[12:15].iat[j,0] = spillerListe[12:15].iat[j,0], spillerListe.iat[i,0]
                         spillerListe.iat[i,1] = 1
@@ -201,13 +201,13 @@ def getAutoSubs(teamId):
 
             if countAtt < minAtt:
                 for (j) in range (len(spillerListe[12:15])):
-                    innbytterPos = teams.at[spillerListe.iat[j,0], 'element_type']
+                    innbytterPos = teams.at[spillerListe[12:15].iat[j,0], 'element_type']
                     if innbytterPos == atts and not didNotPlay(spillerListe[12:15].iat[j,0]):
                         spillerListe.iat[i,0], spillerListe[12:15].iat[j,0] = spillerListe[12:15].iat[j,0], spillerListe.iat[i,0]
                         spillerListe.iat[i,1] = 1
                         countAtt += 1
                         break
-    
+                        
     return spillerListe[0:11][['element', 'multiplier']]
 
 
