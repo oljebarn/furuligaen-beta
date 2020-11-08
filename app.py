@@ -68,12 +68,12 @@ def getGwFixtures():
     r2 = requests.get(url2)
     json2 = r2.json()
     fixtures_df = pd.DataFrame(json2)
+    
+    hfixtures = fixtures_df[['team_h', 'finished_provisional']]
 
-    hfixtures = fixtures_df[['team_h', 'finished']]
-
-    aFixtures = fixtures_df[['team_a', 'finished']]
+    aFixtures = fixtures_df[['team_a', 'finished_provisional']]
     aFixtures.columns = ['team_h', 'finished']
-
+    
     allFix = hfixtures.append(aFixtures)
     allFix.set_index('team_h', inplace = True)
     return allFix
