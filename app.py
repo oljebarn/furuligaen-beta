@@ -72,7 +72,7 @@ def getGwFixtures():
     hfixtures = fixtures_df[['team_h', 'finished_provisional']]
 
     aFixtures = fixtures_df[['team_a', 'finished_provisional']]
-    aFixtures.columns = ['team_h', 'finished']
+    aFixtures.columns = ['team_h', 'finished_provisional']
     
     allFix = hfixtures.append(aFixtures)
     allFix.set_index('team_h', inplace = True)
@@ -99,15 +99,19 @@ minutes = getMinutesPlayed()
 
 def didNotPlay(playerId):
     teamId = teams.at[playerId, 'team']
-    return minutes.at[playerId, 'minutes'] == 0 and allFix.at[teamId, 'finished']
+    return minutes.at[playerId, 'minutes'] == 0 and allFix.at[teamId, 'finished_provisional']
 
-def getAutoSubs(teamId):
+def getAutoSubs(teamId):   
     url4 = 'https://fantasy.premierleague.com/api/entry/' + str(teamId) + '/event/' + str(thisGw) + '/picks/'
     r4 = requests.get(url4)
     json4 = r4.json()
     picks_df = pd.DataFrame(json4['picks'])
 
-    spillerListe = picks_df[['element', 'multiplier', 'is_captain', 'is_vice_captain']]
+    spillerListeOrg = picks_df[['element', 'multiplier', 'is_captain', 'is_vice_captain']]
+    
+    spillerListe = spillerListeOrg.copy()
+    
+    benk = spillerListe[12:15]
 
     minDef = 3
     minMid = 3
@@ -138,12 +142,11 @@ def getAutoSubs(teamId):
                 countAtt += 1
 
     for i in range(len(spillerListe[0:11])):
+        if (countDef + countMid + countAtt + 1) == 11:
+            break
+        
         starter = spillerListe.iat[i,0]
         spilteIkke = didNotPlay(starter)
-
-        if not spilteIkke:
-            break
-
         spillerpos = teams.at[starter, 'element_type']
 
         erKaptein = spillerListe.iat[i, 2]
@@ -151,7 +154,7 @@ def getAutoSubs(teamId):
         # sjekke kaptein
         if spilteIkke and erKaptein:
             spillerListe.loc[spillerListe['is_vice_captain'] == True, 'multiplier'] = spillerListe.iat[i, 1]
-            spillerListe.iat[i, 1] = 0
+            spillerListe.iat[i, 1] = 1
 
         # keeperbytte
         if spillerpos == gk and spilteIkke:
@@ -164,10 +167,10 @@ def getAutoSubs(teamId):
         if spillerpos != gk and spilteIkke:
             spillerListe.iat[i,1] = 0
             if countDef >= minDef and countMid >= minMid and countAtt >= minAtt:
-                for j in range (len(spillerListe[12:15])):
-                    if not didNotPlay(spillerListe.iat[j,0]):
-                        innbytterPos = teams.at[spillerListe.iat[j,0], 'element_type']
-                        spillerListe.iat[i,0], spillerListe.iat[j,0] = spillerListe.iat[j,0], spillerListe.iat[i,0]
+                for (j) in range (len(spillerListe[12:15])):
+                    if not didNotPlay(spillerListe[12:15].iat[j,0]):
+                        innbytterPos = teams.at[spillerListe[12:15].iat[j,0], 'element_type']
+                        spillerListe.iat[i,0], spillerListe[12:15].iat[j,0] =spillerListe[12:15].iat[j,0], spillerListe.iat[i,0]
                         spillerListe.iat[i,1] = 1
 
                         if innbytterPos == defs:
@@ -179,36 +182,35 @@ def getAutoSubs(teamId):
                         break
 
             if countDef < minDef:
-                for j in range (len(spillerListe[12:15])):
-                    innbytterPos = teams.at[spillerListe.iat[j,0], 'element_type']
+                for (j) in range (len(spillerListe[12:15])):
+                    innbytterPos = teams.at[spillerListe[12:15].iat[j,0], 'element_type']
                     if innbytterPos == defs and not didNotPlay(spillerListe.iat[j,0]):
-                        innbytterPos = teams.at[spillerListe.iat[j,0], 'element_type']
-                        spillerListe.iat[i,0], spillerListe.iat[j,0] = spillerListe.iat[j,0], spillerListe.iat[i,0]
+                        spillerListe.iat[i,0], spillerListe[12:15].iat[j,0] = spillerListe[12:15].iat[j,0], spillerListe.iat[i,0]
                         spillerListe.iat[i,1] = 1
                         countDef += 1
                         break
 
             if countMid < minMid:
-                for j in range (len(spillerListe[12:15])):
+                for (j) in range (len(spillerListe[12:15])):
                     innbytterPos = teams.at[spillerListe.iat[j,0], 'element_type']
-                    if innbytterPos == mids and not didNotPlay(spillerListe.iat[j,0]):
-                        innbytterPos = teams.at[spillerListe.iat[j,0], 'element_type']
-                        spillerListe.iat[i,0], spillerListe.iat[j,0] = spillerListe.iat[j,0], spillerListe.iat[i,0]
+                    if innbytterPos == mids and not didNotPlay(spillerListe[12:15].iat[j,0]):
+                        spillerListe.iat[i,0], spillerListe[12:15].iat[j,0] = spillerListe[12:15].iat[j,0], spillerListe.iat[i,0]
                         spillerListe.iat[i,1] = 1
                         countMid += 1
                         break
 
             if countAtt < minAtt:
-                for j in range (len(spillerListe[12:15])):
+                for (j) in range (len(spillerListe[12:15])):
                     innbytterPos = teams.at[spillerListe.iat[j,0], 'element_type']
-                    if innbytterPos == atts and not didNotPlay(spillerListe.iat[j,0]):
-                        innbytterPos = teams.at[spillerListe.iat[j,0], 'element_type']
-                        spillerListe.iat[i,0], spillerListe.iat[j,0] = spillerListe.iat[j,0], spillerListe.iat[i,0]
+                    if innbytterPos == atts and not didNotPlay(spillerListe[12:15].iat[j,0]):
+                        spillerListe.iat[i,0], spillerListe[12:15].iat[j,0] = spillerListe[12:15].iat[j,0], spillerListe.iat[i,0]
                         spillerListe.iat[i,1] = 1
                         countAtt += 1
                         break
-
+    
     return spillerListe[0:11][['element', 'multiplier']]
+
+
 
 
 # Live bonus
