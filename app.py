@@ -222,16 +222,25 @@ def getBonusPoints(playerId):
     playerTeam = teams.at[playerId, 'team']
     
     bonus = 0
+    now = datetime.now()
+    now = now - timedelta(minutes = 60)
     
     for i in range(len(stats_df_len)):
         try:
-            gameStartString = fixtures_df.loc[(fixtures_df.team_a == playerTeam)].iat[0,5]
-            gameStart = datetime.strptime(gameStartString, "%Y-%m-%dT%H:%M:%S%z")
-            game60min = gameStart + timedelta(minutes = 77)
-            
-            if datetime.now() > game60min:
+            gameStartA = fixtures_df.loc[(fixtures_df.team_a == playerTeam)].iat[0,5]
+            gwstartA = datetime.strptime(gameStartA, "%Y-%m-%dT%H:%M:%SZ")
+            played60A = gwstartA + timedelta(minutes = 77)
+            if now < played60A:
                 break
+        except:
+            pass
         
+        try:
+            gameStartH = fixtures_df.loc[(fixtures_df.team_h == playerTeam)].iat[0,5]
+            gwstartH = datetime.strptime(gameStartH, "%Y-%m-%dT%H:%M:%SZ")
+            played60H = gwstartH + timedelta(minutes = 77)
+            if now < played60H:
+                break
         except:
             pass
                
