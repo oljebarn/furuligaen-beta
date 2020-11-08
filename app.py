@@ -222,7 +222,7 @@ def getBonusPoints(playerId):
     playerTeam = teams.at[playerId, 'team']
     
     bonus = 0
-    now = datetime.now() - timedelta(minutes = 60)
+    now = datetime.utcnow()
     
     for i in range(len(stats_df_len)):
         try:
