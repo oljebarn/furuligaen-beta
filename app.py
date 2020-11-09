@@ -375,7 +375,7 @@ def getTabell():
     tabell.insert(0, 'Navn', league_df[['player_name']], True)
     tabellSort = tabell.sort_values ('Round', ascending=False)
     tabellSort.insert(0, "#", range(1, len(tabell) + 1), True)
-    tabellSort.columns = ['#', 'Navn', 'Totalt', 'GW'+str(thisGw), gwHeader()]
+    tabellSort.columns = ['#', 'Navn', 'Tot', 'GW'+str(thisGw), gwHeader()]
     
 
     return tabellSort
