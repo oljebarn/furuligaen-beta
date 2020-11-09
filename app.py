@@ -258,25 +258,31 @@ def getBonusPoints(playerId):
                 ferdig = sort.reset_index(drop=True)
             
                 bps = ferdig[0:6]
-            
+                
+                # Om footballplayer har:
+                # Delt førsteplass
                 if bps.iat[0,0] == bps.iat[1,0] and (playerId == bps.iat[0,1] or playerId == bps.iat[1,1]):
                     bonus = 3
                     break
-                if bps.iat[1,0] == bps.iat[2,0] and (playerId == bps.iat[1,1] or playerId == bps.iat[2,1]):
+                # Delt andreplass   
+                elif bps.iat[1,0] == bps.iat[2,0] and (playerId == bps.iat[1,1] or playerId == bps.iat[2,1]):
                     bonus = 2
                     break
-                if bps.iat[2,0] == bps.iat[3,0] and (playerId == bps.iat[2,1] or playerId == bps.iat[3,1]):
+                # Delt tredje
+                elif bps.iat[2,0] == bps.iat[3,0] and (playerId == bps.iat[2,1] or playerId == bps.iat[3,1]):
                     bonus = 1
                     break
-                if playerId == bps.iat[0,1]:
-                    bonus = 3
-                    break
-                if playerId == bps.iat[1,1]:
-                    bonus = 2
-                    break
-                if playerId == bps.iat[2,1]:
-                    bonus = 1
-                    break
+                
+                else:
+                    if playerId == bps.iat[0,1]:
+                        bonus = 3
+                        break
+                    if playerId == bps.iat[1,1]:
+                        bonus = 2
+                        break
+                    if playerId == bps.iat[2,1]:
+                        bonus = 1
+                        break
         except:
             pass
     return bonus
