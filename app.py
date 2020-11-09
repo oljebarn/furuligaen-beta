@@ -415,10 +415,10 @@ def getRoundPoints(slutter):
     return [spiller, poeng]
 
 def getWinners():
-    rundeStart = [5, 9, 13, 17, 21, 25, 29, 33, 37]
+    nyRunde = [5, 9, 13, 17, 21, 25, 29, 33, 37]
     rundevinnere = []
-    for obj in rundeStart:
-        if gwStarter == obj:
+    for obj in nyRunde:
+        if gwStarter >= obj:
             rundevinnere.append(getRoundPoints(obj))
     result = pd.DataFrame(rundevinnere)
     result.insert(0,'Runde', range(1, len(result) + 1), True)
