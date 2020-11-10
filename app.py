@@ -184,7 +184,7 @@ def getAutoSubs(teamId):
             if countDef < minDef:
                 for (j) in range (len(spillerListe[12:15])):
                     innbytterPos = teams.at[spillerListe[12:15].iat[j,0], 'element_type']
-                    if innbytterPos == defs and not didNotPlay(spillerListe.iat[j,0]):
+                    if innbytterPos == defs and not didNotPlay(spillerListe[12:15].iat[j,0]):
                         spillerListe.iat[i,0], spillerListe[12:15].iat[j,0] = spillerListe[12:15].iat[j,0], spillerListe.iat[i,0]
                         spillerListe.iat[i,1] = 1
                         countDef += 1
