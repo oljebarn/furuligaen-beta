@@ -239,7 +239,7 @@ def getBonusPoints(playerId):
         try:
             gameStartA = fixtures_df.loc[(fixtures_df.team_a == playerTeam)].iat[0,5]
             gwstartA = datetime.strptime(gameStartA, "%Y-%m-%dT%H:%M:%SZ")
-            played60A = gwstartA + timedelta(minutes = 77)
+            played60A = gwstartA + timedelta(minutes = 79)
             if now < played60A:
                 break
         except:
@@ -248,7 +248,7 @@ def getBonusPoints(playerId):
         try:
             gameStartH = fixtures_df.loc[(fixtures_df.team_h == playerTeam)].iat[0,5]
             gwstartH = datetime.strptime(gameStartH, "%Y-%m-%dT%H:%M:%SZ")
-            played60H = gwstartH + timedelta(minutes = 77)
+            played60H = gwstartH + timedelta(minutes = 79)
             if now < played60H:
                 break
         except:
