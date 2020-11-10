@@ -115,6 +115,7 @@ def getAutoSubs(teamId):
     minMid = 3
     minAtt = 1
 
+    countGk = 0
     countDef = 0
     countMid = 0
     countAtt = 0
@@ -132,6 +133,8 @@ def getAutoSubs(teamId):
         spilteIkke = didNotPlay(starter)
 
         if not spilteIkke:
+            if spillerpos == gk:
+                countGk += 1
             if spillerpos == defs:
                 countDef += 1
             if spillerpos == mids:
@@ -140,7 +143,7 @@ def getAutoSubs(teamId):
                 countAtt += 1
 
     for i in range(len(spillerListe[0:11])):
-        if (countDef + countMid + countAtt + 1) == 11:
+        if (countGk + countDef + countMid + countAtt) == 11:
             break
         
         starter = spillerListe.iat[i,0]
@@ -152,7 +155,7 @@ def getAutoSubs(teamId):
         # sjekke kaptein
         if spilteIkke and erKaptein:
             spillerListe.loc[spillerListe['is_vice_captain'] == True, 'multiplier'] = spillerListe.iat[i, 1]
-            spillerListe.iat[i, 1] = 1
+            spillerListe.iat[i, 1] = 0
 
         # keeperbytte
         if spillerpos == gk and spilteIkke:
@@ -160,6 +163,9 @@ def getAutoSubs(teamId):
             if not didNotPlay(keeperbytte):
                 spillerListe.iat[i, 0], spillerListe.iat[11, 0] = spillerListe.iat[11, 0], spillerListe.iat[i, 0]
                 spillerListe.iat[i,1] = 1
+                countGk += 1
+            else:
+                countGk += 1
                 
         # bytte fra benken
         if spillerpos != gk and spilteIkke:
@@ -207,11 +213,16 @@ def getAutoSubs(teamId):
                         spillerListe.iat[i,1] = 1
                         countAtt += 1
                         break
+            else:
+                if spillerpos == defs:
+                    countDef += 1
+                if spillerpos == mids:
+                    countMid += 1
+                if spillerpos == atts:
+                    countAtt += 1
+                    
                         
     return spillerListe[0:11][['element', 'multiplier']]
-
-
-
 
 # Live bonus
 
