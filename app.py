@@ -21,14 +21,12 @@ thisGw = checkGameweek()
 def getGwStart():
     gw = checkGameweek()
     liste = [5, 9, 13, 17, 21, 25, 29, 33, 37]
-    ferdig = False
-    while (ferdig == False):
-        for obj in liste:
-            if gw < obj:
-                return obj - 4
-                ferdig = True
+    for obj in liste:
+        if gw < obj:
+            return obj - 4
+            break
     else:
-        return 37
+        return 37     
 
 # Minus 1 for å treffe index 0
 gwStarter = getGwStart()
