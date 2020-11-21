@@ -16,8 +16,6 @@ def checkGameweek():
     currentGw = iscurrent.loc[(iscurrent.is_current == True)].iat[0,0]
     return currentGw
 
-thisGw = checkGameweek()
-
 def getGwStart():
     gw = checkGameweek()
     liste = [5, 9, 13, 17, 21, 25, 29, 33, 37]
@@ -29,13 +27,12 @@ def getGwStart():
         return 37     
 
 # Minus 1 for å treffe index 0
-gwStarter = getGwStart()
 
 def gwStart():
-    return gwStarter - 1
+    return getGwStart() - 1
 
 def gwEnd ():
-    gw = gwStarter
+    gw = getGwStart()
     if gw == 37 or gw == 38:
         return 38
     else:
@@ -44,10 +41,7 @@ def gwEnd ():
 # For header i tabell
 def gwHeader():
     gwE = gwEnd()
-    return "GW " + str(gwStarter) + " -> " + str(gwE)
-
-# Poeng i tabell
-thisGw = checkGameweek()
+    return "GW " + str(getGwStart()) + " -> " + str(gwE)
 
 # Auto subs
 def getBootstrapTeams():
@@ -62,7 +56,7 @@ def getBootstrapTeams():
 
 
 def getGwFixtures():
-    url2 = 'https://fantasy.premierleague.com/api/fixtures/?event=' + str(thisGw)
+    url2 = 'https://fantasy.premierleague.com/api/fixtures/?event=' + str(checkGameweek())
     r2 = requests.get(url2)
     json2 = r2.json()
     fixtures_df = pd.DataFrame(json2)
@@ -79,7 +73,7 @@ def getGwFixtures():
 allFix = getGwFixtures()
 
 def getMinutesPlayed():
-    url1 = 'https://fantasy.premierleague.com/api/event/' + str(thisGw) + '/live/'
+    url1 = 'https://fantasy.premierleague.com/api/event/' + str(checkGameweek()) + '/live/'
     r1 = requests.get(url1)
     json1 = r1.json()
     liveElements_df = pd.DataFrame(json1['elements'])
@@ -100,7 +94,7 @@ def didNotPlay(playerId):
     return minutes.at[playerId, 'minutes'] == 0 and allFix.at[teamId, 'finished_provisional']
 
 def getAutoSubs(teamId):   
-    url4 = 'https://fantasy.premierleague.com/api/entry/' + str(teamId) + '/event/' + str(thisGw) + '/picks/'
+    url4 = 'https://fantasy.premierleague.com/api/entry/' + str(teamId) + '/event/' + str(checkGameweek()) + '/picks/'
     r4 = requests.get(url4)
     json4 = r4.json()
     picks_df = pd.DataFrame(json4['picks'])
@@ -225,7 +219,7 @@ def getAutoSubs(teamId):
 # Live bonus
 
 def getBonusPoints(playerId):
-    url2 = 'https://fantasy.premierleague.com/api/fixtures/?event=' + str(thisGw)
+    url2 = 'https://fantasy.premierleague.com/api/fixtures/?event=' + str(checkGameweek())
     r2 = requests.get(url2)
     json2 = r2.json()
     fixtures_df = pd.DataFrame(json2)
@@ -317,7 +311,7 @@ def getTeamList():
 
 
 def getAllPlayerList():
-    url = 'https://fantasy.premierleague.com/api/event/' + str(thisGw) + '/live/'
+    url = 'https://fantasy.premierleague.com/api/event/' + str(checkGameweek()) + '/live/'
     r = requests.get(url)
     json = r.json()
     liveElements_df = pd.DataFrame(json['elements'])
@@ -355,10 +349,10 @@ def getGwRoundPoints(teamId):
     
     livePlayerPoints = getLivePlayerPoints(teamId) 
     
-    livePlayerPoints_trans = livePlayerPoints - teamPoints_df['event_transfers_cost'][thisGw-1]
+    livePlayerPoints_trans = livePlayerPoints - teamPoints_df['event_transfers_cost'][checkGameweek()-1]
     
-    liveRound = (teamPoints_df['points'][gws:(thisGw - 1)].sum() + livePlayerPoints - teamPoints_df['event_transfers_cost'][gws:gwe].sum() )
-    total = teamPoints_df.iat[(thisGw - 2), 2] + livePlayerPoints_trans
+    liveRound = (teamPoints_df['points'][gws:(checkGameweek() - 1)].sum() + livePlayerPoints - teamPoints_df['event_transfers_cost'][gws:gwe].sum() )
+    total = teamPoints_df.iat[(checkGameweek() - 2), 2] + livePlayerPoints_trans
     
     return [total, livePlayerPoints_trans, liveRound]
 
@@ -384,7 +378,7 @@ def getTabell():
     tabell.insert(0, 'Navn', league_df[['player_name']], True)
     tabellSort = tabell.sort_values ('Round', ascending=False)
     tabellSort.insert(0, "#", range(1, len(tabell) + 1), True)
-    tabellSort.columns = ['#', 'Navn', 'Tot', 'GW'+str(thisGw), gwHeader()]
+    tabellSort.columns = ['#', 'Navn', 'Tot', 'GW'+str(checkGameweek()), gwHeader()]
     
 
     return tabellSort
@@ -427,7 +421,7 @@ def getWinners():
     nyRunde = [5, 9, 13, 17, 21, 25, 29, 33, 37]
     rundevinnere = []
     for obj in nyRunde:
-        if gwStarter >= obj:
+        if getGwStart() >= obj:
             rundevinnere.append(getRoundPoints(obj))
     result = pd.DataFrame(rundevinnere)
     result.insert(0,'Runde', range(1, len(result) + 1), True)
