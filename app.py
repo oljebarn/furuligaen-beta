@@ -111,7 +111,7 @@ def index():
         spillerListe = spillerListeOrg.copy()
 
         minDef = 3
-        minMid = 3
+        minMid = 2
         minAtt = 1
 
         countGk = 0
@@ -184,9 +184,10 @@ def index():
                                 countMid += 1
                             if innbytterPos == atts:
                                 countAtt += 1
-                            break
+                            break           
+                            
 
-                if countDef < minDef:
+                elif countDef < minDef:
                     for (j) in range (len(spillerListe[12:15])):
                         innbytterPos = teams.at[spillerListe[12:15].iat[j,0], 'element_type']
                         if innbytterPos == defs and not didNotPlay(spillerListe[12:15].iat[j,0]):
@@ -195,7 +196,7 @@ def index():
                             countDef += 1
                             break
 
-                if countMid < minMid:
+                elif countMid < minMid:
                     for (j) in range (len(spillerListe[12:15])):
                         innbytterPos = teams.at[spillerListe[12:15].iat[j,0], 'element_type']
                         if innbytterPos == mids and not didNotPlay(spillerListe[12:15].iat[j,0]):
@@ -204,7 +205,7 @@ def index():
                             countMid += 1
                             break
 
-                if countAtt < minAtt:
+                elif countAtt < minAtt:
                     for (j) in range (len(spillerListe[12:15])):
                         innbytterPos = teams.at[spillerListe[12:15].iat[j,0], 'element_type']
                         if innbytterPos == atts and not didNotPlay(spillerListe[12:15].iat[j,0]):
@@ -212,6 +213,7 @@ def index():
                             spillerListe.iat[i,1] = 1
                             countAtt += 1
                             break
+                
                 else:
                     if spillerpos == defs:
                         countDef += 1
@@ -434,7 +436,3 @@ def index():
     result = render_template('main_page.html', tables=[getTabell().to_html(classes='tabeller'), getWinners().to_html(classes='vinnere')],
     titles = ['na', 'Furuligaen', 'Vinnere'])
     return result
-
-#if __name__ == '__main__':
-#    app.debug = True
-#    app.run(host= '0.0.0.0', port = 5000)
