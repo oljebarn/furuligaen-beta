@@ -1,6 +1,7 @@
 
 # A very simple Flask Hello World app for you to get started with...
 from flask import Flask, render_template
+from numpy.lib.shape_base import split
 import pandas as pd
 import requests
 from datetime import timedelta, datetime
@@ -26,17 +27,13 @@ def index():
         liste = [5, 9, 13, 17, 21, 25, 29, 33, 37]
         for obj in liste:
             if gw < obj:
-                return obj - 4
-                break
+                return obj - 4 
         else:
             return 37     
 
     # Minus 1 for å treffe index 0
 
     getGwStart1 = getGwStart()
-
-    def gwStart():
-        return getGwStart1 - 1
 
     def gwEnd ():
         gw = getGwStart1
@@ -170,59 +167,56 @@ def index():
             if spillerpos != gk and spilteIkke:
                 
                 spillerListe.iat[i,1] = 0
-                
-                if countDef >= minDef and countMid >= minMid and countAtt >= minAtt:
-                    for (j) in range (len(spillerListe[12:15])):
-                        if not didNotPlay(spillerListe[12:15].iat[j,0]):
-                            innbytterPos = teams.at[spillerListe[12:15].iat[j,0], 'element_type']
-                            spillerListe.iat[i,0], spillerListe[12:15].iat[j,0] = spillerListe[12:15].iat[j,0], spillerListe.iat[i,0] 
-                            spillerListe.iat[i,1] = 1
+                byttet = False
 
-                            if innbytterPos == defs:
-                                countDef += 1
-                            if innbytterPos == mids:
-                                countMid += 1
-                            if innbytterPos == atts:
-                                countAtt += 1
-                            break           
-                            
+                for j in range (len(spillerListe[12:15])):
+                    if didNotPlay(spillerListe[12:15].iat[j,0]):
+                        continue
+                    
+                    innbytterPos = teams.at[spillerListe[12:15].iat[j,0], 'element_type']
 
-                elif countDef < minDef:
-                    for (j) in range (len(spillerListe[12:15])):
-                        innbytterPos = teams.at[spillerListe[12:15].iat[j,0], 'element_type']
-                        if innbytterPos == defs and not didNotPlay(spillerListe[12:15].iat[j,0]):
-                            spillerListe.iat[i,0], spillerListe[12:15].iat[j,0] = spillerListe[12:15].iat[j,0], spillerListe.iat[i,0]
-                            spillerListe.iat[i,1] = 1
+                    if countDef >= minDef and countMid >= minMid and countAtt >= minAtt:
+                        spillerListe.iat[i,0], spillerListe[12:15].iat[j,0] = spillerListe[12:15].iat[j,0], spillerListe.iat[i,0] 
+                        spillerListe.iat[i,1] = 1
+
+                        if innbytterPos == defs:
                             countDef += 1
-                            break
-
-                elif countMid < minMid:
-                    for (j) in range (len(spillerListe[12:15])):
-                        innbytterPos = teams.at[spillerListe[12:15].iat[j,0], 'element_type']
-                        if innbytterPos == mids and not didNotPlay(spillerListe[12:15].iat[j,0]):
-                            spillerListe.iat[i,0], spillerListe[12:15].iat[j,0] = spillerListe[12:15].iat[j,0], spillerListe.iat[i,0]
-                            spillerListe.iat[i,1] = 1
+                        if innbytterPos == mids:
                             countMid += 1
-                            break
-
-                elif countAtt < minAtt:
-                    for (j) in range (len(spillerListe[12:15])):
-                        innbytterPos = teams.at[spillerListe[12:15].iat[j,0], 'element_type']
-                        if innbytterPos == atts and not didNotPlay(spillerListe[12:15].iat[j,0]):
-                            spillerListe.iat[i,0], spillerListe[12:15].iat[j,0] = spillerListe[12:15].iat[j,0], spillerListe.iat[i,0]
-                            spillerListe.iat[i,1] = 1
+                        if innbytterPos == atts:
                             countAtt += 1
-                            break
-                
-                else:
+                        byttet = True
+                        break           
+                            
+                    if countDef < minDef and innbytterPos == defs:
+                        spillerListe.iat[i,0], spillerListe[12:15].iat[j,0] = spillerListe[12:15].iat[j,0], spillerListe.iat[i,0]
+                        spillerListe.iat[i,1] = 1
+                        countDef += 1
+                        byttet = True
+                        break
+
+                    if countMid < minMid and innbytterPos == mids:
+                        spillerListe.iat[i,0], spillerListe[12:15].iat[j,0] = spillerListe[12:15].iat[j,0], spillerListe.iat[i,0]
+                        spillerListe.iat[i,1] = 1
+                        countMid += 1
+                        byttet = True
+                        break
+
+                    if countAtt < minAtt and innbytterPos == atts:
+                        spillerListe.iat[i,0], spillerListe[12:15].iat[j,0] = spillerListe[12:15].iat[j,0], spillerListe.iat[i,0]
+                        spillerListe.iat[i,1] = 1
+                        countAtt += 1
+                        byttet = True
+                        break
+                    
+                if byttet == False:
                     if spillerpos == defs:
                         countDef += 1
                     if spillerpos == mids:
                         countMid += 1
                     if spillerpos == atts:
                         countAtt += 1
-                        
-                            
+                    
         return spillerListe[0:11][['element', 'multiplier']]
 
     # Live bonus
