@@ -221,85 +221,60 @@ def index():
 
     # Live bonus
 
-    def getBonusPoints(playerId):
-        url2 = 'https://fantasy.premierleague.com/api/fixtures/?event=' + str(thisGw)
-        r2 = requests.get(url2)
-        json2 = r2.json()
-        fixtures_df = pd.DataFrame(json2)
-        stats_df_len = pd.DataFrame(fixtures_df['stats'].values.tolist())
-        playerTeam = teams.at[playerId, 'team']
-        
-        bonus = 0
-        now = datetime.utcnow()
-        
-        for i in range(len(stats_df_len)):
+    def getBonusLists():
+        liste = pd.DataFrame()
+        url = 'https://fantasy.premierleague.com/api/fixtures/?event=' + str(thisGw)
+        r = requests.get(url)
+        json = r.json()
+        fixtures_df = pd.DataFrame(json)
+        for i in range (len(fixtures_df)):
             try:
-                gameStartA = fixtures_df.loc[(fixtures_df.team_a == playerTeam)].iat[0,5]
-                gwstartA = datetime.strptime(gameStartA, "%Y-%m-%dT%H:%M:%SZ")
-                played60A = gwstartA + timedelta(minutes = 79)
-                if now < played60A:
-                    break
-            except:
-                pass
+                stats_df = pd.DataFrame(fixtures_df['stats'].iloc[i])
+                stats_a = pd.DataFrame(stats_df.loc[9,'a'])
+                stats_h = pd.DataFrame(stats_df.loc[9,'h'])
+                samlet = stats_a.append(stats_h)
+                sort = samlet.sort_values(by=['value'], ascending=False)
+                ferdig = sort.reset_index(drop=True)
+                bps = ferdig[0:6].copy()
+                bps['bonus'] = 0
             
-            try:
-                gameStartH = fixtures_df.loc[(fixtures_df.team_h == playerTeam)].iat[0,5]
-                gwstartH = datetime.strptime(gameStartH, "%Y-%m-%dT%H:%M:%SZ")
-                played60H = gwstartH + timedelta(minutes = 79)
-                if now < played60H:
-                    break
+                # Delt første
+                if bps.iat[0,0] == bps.iat[1,0]:
+                    bps.at[0,'bonus'] = 3
+                    bps.at[1,'bonus'] = 3
+                    bps.at[2,'bonus'] = 1
+                    liste = liste.append(bps, ignore_index = True, sort = False)
+                # Delt andreplass   
+                elif bps.iat[1,0] == bps.iat[2,0]:
+                    bps.at[0,'bonus'] = 3
+                    bps.at[1,'bonus'] = 2
+                    bps.at[2,'bonus'] = 2
+                # Delt tredje
+                elif bps.iat[2,0] == bps.iat[3,0]:
+                    bps.at[0,'bonus'] = 3
+                    bps.at[1,'bonus'] = 2
+                    bps.at[2,'bonus'] = 1
+                    bps.at[3,'bonus'] = 1
+                    liste = liste.append(bps, ignore_index = True, sort = False)
+                else:
+                    bps.at[0,'bonus'] = 3
+                    bps.at[1,'bonus'] = 2
+                    bps.at[2,'bonus'] = 1
+                    liste = liste.append(bps, ignore_index = True, sort = False)
             except:
                 pass
-                
-            try:
-                
-                if playerTeam == fixtures_df.at[i, 'team_a'] or playerTeam == fixtures_df.at[i, 'team_h']:
-                    stats_df = pd.DataFrame(fixtures_df['stats'].iloc[i]) # <- iloc[i]
-
-                    stats_a = pd.DataFrame(stats_df.loc[9,'a'])
-                    stats_h = pd.DataFrame(stats_df.loc[9,'h'])
-
-                    samlet = stats_h.append(stats_a)
-                    sort = samlet.sort_values(by=['value'], ascending=False)
-                    ferdig = sort.reset_index(drop=True)
-                
-                    bps = ferdig[0:6]
-                    
-                    # Om footballplayer har:
-                    # Delt førsteplass
-                    if bps.iat[0,0] == bps.iat[1,0] and (playerId == bps.iat[0,1] or playerId == bps.iat[1,1]):
-                        bonus = 3
-                        break
-                    # Delt andreplass   
-                    elif bps.iat[1,0] == bps.iat[2,0] and (playerId == bps.iat[1,1] or playerId == bps.iat[2,1]):
-                        bonus = 2
-                        break
-                    # Delt tredje
-                    elif bps.iat[2,0] == bps.iat[3,0] and (playerId == bps.iat[2,1] or playerId == bps.iat[3,1]):
-                        bonus = 1
-                        break
-                    
-                    else:
-                        if playerId == bps.iat[0,1]:
-                            bonus = 3
-                            break
-                        if playerId == bps.iat[1,1]:
-                            bonus = 2
-                            break
-                        if playerId == bps.iat[2,1]:
-                            bonus = 1
-                            break
-            except:
-                pass
-        return bonus
+        return liste.set_index('element', inplace=False)['bonus']
+    
+    bonuspoints = getBonusLists()
 
     def getLiveBonusList(teamId):
         picks = getAutoSubs(teamId)
         bonusPoeng = []
-
         for ids in picks['element']:
-            bonusPoeng.append(getBonusPoints(ids))
-
+            try:
+                bonusPoeng.append(bonuspoints.at[ids])
+            except:
+                bonusPoeng.append(0)
         return bonusPoeng
 
     def getTeamList():
@@ -351,11 +326,13 @@ def index():
         livePlayerPoints_trans = livePlayerPoints - teamPoints_df['event_transfers_cost'][thisGw-1]
         
         liveRound = (teamPoints_df['points'][gws:(thisGw - 1)].sum() + livePlayerPoints - teamPoints_df['event_transfers_cost'][gws-1:gwe].sum() )
+        
         total = teamPoints_df.iat[(thisGw - 2), 2] + livePlayerPoints_trans
         
         return [total, livePlayerPoints_trans, liveRound]
 
     teamsList = getTeamList()
+    
     def getTeamsPoints():
         tabell = []
         for team in teamsList:
