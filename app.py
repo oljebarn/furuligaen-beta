@@ -283,7 +283,7 @@ def index():
         json2 = r2.json()
         standings_df = pd.DataFrame(json2['standings'])
         league_df = pd.DataFrame(standings_df['results'].values.tolist())
-        return league_df ['entry']
+        return league_df [['entry', 'player_name']]
 
 
     def getAllPlayerList():
@@ -335,7 +335,7 @@ def index():
     
     def getTeamsPoints():
         tabell = []
-        for team in teamsList:
+        for team in teamsList['entry']:
             tabell.append(getGwRoundPoints(team))
         
         tabell_df = pd.DataFrame(tabell)
@@ -364,41 +364,34 @@ def index():
         starter = slutter - 5
         slutter = starter + 4
 
-        url2 = 'https://fantasy.premierleague.com/api/leagues-classic/627607/standings/'
-        r2 = requests.get(url2)
-        json2 = r2.json()
-        standings_df = pd.DataFrame(json2['standings'])
-        league_df = pd.DataFrame(standings_df['results'].values.tolist())
-        teamid_df = league_df [['entry', 'player_name']]
-
         result = []
-
+        navn = []
         # Finner scoren til alle spillerne i parmeterintervallet
-        for team in teamid_df ['entry']:
-            url = 'https://fantasy.premierleague.com/api/entry/' + str(team) + '/history/'
+        
+        for i in range (len(teamsList)):
+            url = 'https://fantasy.premierleague.com/api/entry/' + str(teamsList.iat[i,0]) + '/history/'
             r = requests.get(url)
             json = r.json()
             teamPoints_df = pd.DataFrame(json['current'])
-            result.append(teamPoints_df['points'][starter:slutter].sum() - teamPoints_df['event_transfers_cost'][starter:slutter].sum() )
-
-        # Setter spiller og poeng i liste
-        navn = teamid_df['player_name']
-        totpoints = result
-        poeng = 0
-        spiller = ""
-        for i in range (len(navn)):
-            if totpoints[i] > poeng:
-                poeng = totpoints[i]
-                spiller = navn[i]
-
-        return [spiller, poeng]
+            result.append(teamPoints_df['points'][starter:slutter].sum() - 
+                        teamPoints_df['event_transfers_cost'][starter:slutter].sum())
+            navn.append(teamsList.iat[i,1])
+        
+        samlet = pd.DataFrame(result, navn)
+        samlet.reset_index(inplace = True)
+        maxClm = samlet.loc[samlet[0].argmax()]
+        
+        return maxClm
 
     def getWinners():
         nyRunde = [5, 9, 13, 17, 21, 25, 29, 33, 37]
         rundevinnere = []
         for obj in nyRunde:
+            if getGwStart1 < obj:
+                break
             if getGwStart1 >= obj:
                 rundevinnere.append(getRoundPoints(obj))
+                
         result = pd.DataFrame(rundevinnere)
         result.insert(0,'Runde', range(1, len(result) + 1), True)
         result.columns = ['Runde', 'Vinner', 'Poeng']
