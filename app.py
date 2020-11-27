@@ -287,10 +287,12 @@ def index():
                             liste.append(0)
                 except:
                     pass
-        
-        elements['bonus'] = liste
-        return elements.set_index('element', inplace=False)['bonus']
-    
+        try:
+            elements['bonus'] = liste
+            return elements.set_index('element', inplace=False)['bonus']
+        except:
+            return []
+
     bonuspoints = getBonusLists()
 
     def getLiveBonusList(teamId):
