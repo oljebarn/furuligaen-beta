@@ -222,7 +222,8 @@ def index():
     # Live bonus
 
     def getBonusLists():
-        liste = pd.DataFrame()
+        liste = []
+        elements = pd.DataFrame()
         url = 'https://fantasy.premierleague.com/api/fixtures/?event=' + str(thisGw)
         r = requests.get(url)
         json = r.json()
@@ -236,35 +237,53 @@ def index():
                 sort = samlet.sort_values(by=['value'], ascending=False)
                 ferdig = sort.reset_index(drop=True)
                 bps = ferdig[0:6].copy()
-                bps['bonus'] = 0
-            
-                # Delt første
-                if bps.iat[0,0] == bps.iat[1,0]:
-                    bps.at[0,'bonus'] = 3
-                    bps.at[1,'bonus'] = 3
-                    bps.at[2,'bonus'] = 1
-                    liste = liste.append(bps, ignore_index = True, sort = False)
-                # Delt andreplass   
-                elif bps.iat[1,0] == bps.iat[2,0]:
-                    bps.at[0,'bonus'] = 3
-                    bps.at[1,'bonus'] = 2
-                    bps.at[2,'bonus'] = 2
-                    liste = liste.append(bps, ignore_index = True, sort = False)
-                # Delt tredje
-                elif bps.iat[2,0] == bps.iat[3,0]:
-                    bps.at[0,'bonus'] = 3
-                    bps.at[1,'bonus'] = 2
-                    bps.at[2,'bonus'] = 1
-                    bps.at[3,'bonus'] = 1
-                    liste = liste.append(bps, ignore_index = True, sort = False)
-                else:
-                    bps.at[0,'bonus'] = 3
-                    bps.at[1,'bonus'] = 2
-                    bps.at[2,'bonus'] = 1
-                    liste = liste.append(bps, ignore_index = True, sort = False)
+                elements = elements.append(bps, ignore_index = True, sort = False)
+                
+                first = False
+                second = False
+                third = False
+                count = 0
+                for j in range(len(bps)):
+                    if first == False:
+                        try:
+                            if (bps.iat[j,0] == bps.iat[j+1,0]):
+                                liste.append(3)
+                                count += 1
+                            elif (bps.iat[j,0] != bps.iat[j+1,0]):
+                                liste.append(3)
+                                count += 1
+                                first = True
+                        except:
+                            pass
+
+                    elif second == False and count <= 1:
+                        try:
+                            if (bps.iat[j,0] == bps.iat[j+1,0]):
+                                liste.append(2)
+                                count -= 1
+                            elif (bps.iat[j,0] != bps.iat[j+1,0]):
+                                liste.append(2)
+                                count += 1
+                                second = True
+                        except:
+                            pass
+
+                    elif third == False and count == 2:
+                        try:
+                            if (bps.iat[j,0] == bps.iat[j+1,0]):
+                                liste.append(1)
+                            elif (bps.iat[j,0] != bps.iat[j+1,0]):
+                                liste.append(1)
+                                third = True
+                        except:
+                            pass
+                    else:
+                        liste.append(0)
             except:
                 pass
-        return liste.set_index('element', inplace=False)['bonus']
+        
+        elements['bonus'] = liste
+        return elements.set_index('element', inplace=False)['bonus']
     
     bonuspoints = getBonusLists()
 
