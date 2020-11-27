@@ -228,59 +228,65 @@ def index():
         r = requests.get(url)
         json = r.json()
         fixtures_df = pd.DataFrame(json)
+        
+        now = datetime.utcnow()
         for i in range (len(fixtures_df)):
-            try:
-                stats_df = pd.DataFrame(fixtures_df['stats'].iloc[i])
-                stats_a = pd.DataFrame(stats_df.loc[9,'a'])
-                stats_h = pd.DataFrame(stats_df.loc[9,'h'])
-                samlet = stats_a.append(stats_h)
-                sort = samlet.sort_values(by=['value'], ascending=False)
-                ferdig = sort.reset_index(drop=True)
-                bps = ferdig[0:6].copy()
-                elements = elements.append(bps, ignore_index = True, sort = False)
-                
-                first = False
-                second = False
-                third = False
-                count = 0
-                for j in range(len(bps)):
-                    if first == False:
-                        try:
-                            if (bps.iat[j,0] == bps.iat[j+1,0]):
-                                liste.append(3)
-                                count += 1
-                            elif (bps.iat[j,0] != bps.iat[j+1,0]):
-                                liste.append(3)
-                                count += 1
-                                first = True
-                        except:
-                            pass
+            gameStart = fixtures_df.at[i, 'kickoff_time']
+            gameStart = datetime.strptime(gameStart, "%Y-%m-%dT%H:%M:%SZ")
+            played60 = gameStart + timedelta(minutes = 79)
+            if now < played60:
+                try:
+                    stats_df = pd.DataFrame(fixtures_df['stats'].iloc[i])
+                    stats_a = pd.DataFrame(stats_df.loc[9,'a'])
+                    stats_h = pd.DataFrame(stats_df.loc[9,'h'])
+                    samlet = stats_a.append(stats_h)
+                    sort = samlet.sort_values(by=['value'], ascending=False)
+                    ferdig = sort.reset_index(drop=True)
+                    bps = ferdig[0:6].copy()
+                    elements = elements.append(bps, ignore_index = True, sort = False)
+                    
+                    first = False
+                    second = False
+                    third = False
+                    count = 0
+                    for j in range(len(bps)):
+                        if first == False:
+                            try:
+                                if (bps.iat[j,0] == bps.iat[j+1,0]):
+                                    liste.append(3)
+                                    count += 1
+                                elif (bps.iat[j,0] != bps.iat[j+1,0]):
+                                    liste.append(3)
+                                    count += 1
+                                    first = True
+                            except:
+                                pass
 
-                    elif second == False and count <= 1:
-                        try:
-                            if (bps.iat[j,0] == bps.iat[j+1,0]):
-                                liste.append(2)
-                                count -= 1
-                            elif (bps.iat[j,0] != bps.iat[j+1,0]):
-                                liste.append(2)
-                                count += 1
-                                second = True
-                        except:
-                            pass
+                        elif second == False and count <= 1:
+                            try:
+                                if (bps.iat[j,0] == bps.iat[j+1,0]):
+                                    liste.append(2)
+                                    count -= 1
+                                elif (bps.iat[j,0] != bps.iat[j+1,0]):
+                                    liste.append(2)
+                                    count += 1
+                                    second = True
+                            except:
+                                pass
 
-                    elif third == False and count == 2:
-                        try:
-                            if (bps.iat[j,0] == bps.iat[j+1,0]):
-                                liste.append(1)
-                            elif (bps.iat[j,0] != bps.iat[j+1,0]):
-                                liste.append(1)
-                                third = True
-                        except:
-                            pass
-                    else:
-                        liste.append(0)
-            except:
-                pass
+                        elif third == False and count == 2:
+                            try:
+                                if (bps.iat[j,0] == bps.iat[j+1,0]):
+                                    liste.append(1)
+                                elif (bps.iat[j,0] != bps.iat[j+1,0]):
+                                    liste.append(1)
+                                    third = True
+                            except:
+                                pass
+                        else:
+                            liste.append(0)
+                except:
+                    pass
         
         elements['bonus'] = liste
         return elements.set_index('element', inplace=False)['bonus']
@@ -345,7 +351,7 @@ def index():
         
         livePlayerPoints_trans = livePlayerPoints - teamPoints_df['event_transfers_cost'][thisGw-1]
         
-        liveRound = (teamPoints_df['points'][gws:(thisGw - 1)].sum() + livePlayerPoints - teamPoints_df['event_transfers_cost'][gws-1:gwe].sum() )
+        liveRound = (teamPoints_df['points'][(gws-1):(thisGw - 1)].sum() + livePlayerPoints - teamPoints_df['event_transfers_cost'][gws-1:gwe].sum() )
         
         total = teamPoints_df.iat[(thisGw - 2), 2] + livePlayerPoints_trans
         
