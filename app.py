@@ -249,6 +249,7 @@ def index():
                     bps.at[0,'bonus'] = 3
                     bps.at[1,'bonus'] = 2
                     bps.at[2,'bonus'] = 2
+                    liste = liste.append(bps, ignore_index = True, sort = False)
                 # Delt tredje
                 elif bps.iat[2,0] == bps.iat[3,0]:
                     bps.at[0,'bonus'] = 3
