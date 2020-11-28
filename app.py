@@ -234,7 +234,7 @@ def index():
             gameStart = fixtures_df.at[i, 'kickoff_time']
             gameStart = datetime.strptime(gameStart, "%Y-%m-%dT%H:%M:%SZ")
             played60 = gameStart + timedelta(minutes = 79)
-            if now < played60:
+            if now > played60:
                 try:
                     stats_df = pd.DataFrame(fixtures_df['stats'].iloc[i])
                     stats_a = pd.DataFrame(stats_df.loc[9,'a'])
