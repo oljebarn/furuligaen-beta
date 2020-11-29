@@ -46,7 +46,7 @@ def index():
 
     # For header i tabell
     def gwHeader():
-        return "GW " + str(getGwStart1) + " -> " + str(getGwEnd1)
+        return "GW \n" + str(getGwStart1) + "→" + str(getGwEnd1)
 
     # Auto subs
     def getBootstrapTeams():
