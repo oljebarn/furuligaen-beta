@@ -94,9 +94,11 @@ def index():
     minutes = getMinutesPlayed()
 
     def didNotPlay(playerId):
-        teamId = teams.at[playerId, 'team']
-        return minutes.at[playerId, 'minutes'] == 0 and allFix.at[teamId, 'finished_provisional']
-
+        try:
+           teamId = teams.at[playerId, 'team']
+           return minutes.at[playerId, 'minutes'] == 0 and allFix.at[teamId, 'finished_provisional']
+        except:
+           return True
     def getAutoSubs(teamId):   
         url4 = 'https://fantasy.premierleague.com/api/entry/' + str(teamId) + '/event/' + str(thisGw) + '/picks/'
         r4 = requests.get(url4)
