@@ -1,7 +1,4 @@
-
-# A very simple Flask Hello World app for you to get started with...
 from flask import Flask, render_template
-from numpy.lib.shape_base import split
 import pandas as pd
 import requests
 from datetime import timedelta, datetime
@@ -31,22 +28,18 @@ def index():
         else:
             return 37     
 
-    # Minus 1 for å treffe index 0
-
-    getGwStart1 = getGwStart()
+    gws = getGwStart()
 
     def gwEnd ():
-        gw = getGwStart1
+        gw = gws
         if gw == 37 or gw == 38:
             return 38
         else:
             return gw + 3
-    
-    getGwEnd1 = gwEnd()
 
     # For header i tabell
     def gwHeader():
-        return "GW \n" + str(getGwStart1) + "→" + str(getGwEnd1)
+        return "GW \n" + str(gws) + "→" + str(gwEnd())
 
     # Auto subs
     def getBootstrapTeams():
@@ -94,11 +87,12 @@ def index():
     minutes = getMinutesPlayed()
 
     def didNotPlay(playerId):
-        try:
-           teamId = teams.at[playerId, 'team']
-           return minutes.at[playerId, 'minutes'] == 0 and allFix.at[teamId, 'finished_provisional']
+        try: 
+            teamId = teams.at[playerId, 'team']
+            return minutes.at[playerId, 'minutes'] == 0 and allFix.at[teamId, 'finished_provisional']
         except:
-           return True
+            return True
+    
     def getAutoSubs(teamId):   
         url4 = 'https://fantasy.premierleague.com/api/entry/' + str(teamId) + '/event/' + str(thisGw) + '/picks/'
         r4 = requests.get(url4)
@@ -342,9 +336,6 @@ def index():
             
         return poeng    
 
-    gws = getGwStart1
-    gwe = getGwEnd1
-
     def getGwRoundPoints(teamId):
         url = 'https://fantasy.premierleague.com/api/entry/' + str(teamId) + '/history/'
         r = requests.get(url)
@@ -355,11 +346,16 @@ def index():
         
         livePlayerPoints_trans = livePlayerPoints - teamPoints_df['event_transfers_cost'][thisGw-1]
         
-        liveRound = (teamPoints_df['points'][(gws-1):(thisGw - 1)].sum() + livePlayerPoints - teamPoints_df['event_transfers_cost'][gws-1:gwe].sum() )
-        
-        total = teamPoints_df.iat[(thisGw - 2), 2] + livePlayerPoints_trans
-        
-        return [total, livePlayerPoints_trans, liveRound]
+        try:
+            liveRound = (teamPoints_df['total_points'][(thisGw - 2)] - 
+            teamPoints_df['total_points'][(gws - 2)]) + livePlayerPoints_trans
+
+            liveTotal = teamPoints_df['total_points'][(thisGw - 2)] + livePlayerPoints_trans
+        except:
+            liveRound = 0
+            liveTotal = 0
+
+        return [liveTotal, livePlayerPoints_trans, liveRound]
 
     teamsList = getTeamList()
     
@@ -386,7 +382,6 @@ def index():
         tabellSort.insert(0, "#", range(1, len(tabell) + 1), True)
         tabellSort.columns = ['#', 'Navn', 'Tot', 'GW'+str(thisGw), gwHeader()]
         
-
         return tabellSort
 
     # Rundevinnere
@@ -417,9 +412,9 @@ def index():
         nyRunde = [5, 9, 13, 17, 21, 25, 29, 33, 37]
         rundevinnere = []
         for obj in nyRunde:
-            if getGwStart1 < obj:
+            if gws < obj:
                 break
-            if getGwStart1 >= obj:
+            if gws >= obj:
                 rundevinnere.append(getRoundPoints(obj))
                 
         result = pd.DataFrame(rundevinnere)
@@ -427,6 +422,6 @@ def index():
         result.columns = ['Runde', 'Vinner', 'Poeng']
         return result
 
-    result = render_template('main_page.html', tables=[getTabell().to_html(classes='tabeller'), getWinners().to_html(classes='vinnere')],
-    titles = ['na', 'Furuligaen', 'Vinnere'])
+    result = render_template('main_page.html', tables=[getTabell().to_html(classes='tabeller'), 
+    getWinners().to_html(classes='vinnere')], titles = ['na', 'Furuligaen', 'Vinnere'])
     return result
