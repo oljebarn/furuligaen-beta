@@ -411,6 +411,8 @@ def index():
     def getWinners():
         nyRunde = [5, 9, 13, 17, 21, 25, 29, 33, 37]
         rundevinnere = []
+        gwIntervall = ["1 → 4", "5 → 8", "9 → 12", "13 → 16", "17 → 20",
+         "21 → 24", "25 → 28", "29 → 32", "33 → 36", "37 → 38"]
         for obj in nyRunde:
             if gws < obj:
                 break
@@ -418,8 +420,10 @@ def index():
                 rundevinnere.append(getRoundPoints(obj))
                 
         result = pd.DataFrame(rundevinnere)
-        result.insert(0,'Runde', range(1, len(result) + 1), True)
-        result.columns = ['Runde', 'Vinner', 'Poeng']
+        result.insert(0, 'Runde', gwIntervall[:(len(result))], True)
+        #result['Runde'] = gwIntervall[:2]
+        #result.insert(0,'Runde', range(1, len(result) + 1), True)
+        result.columns = ['GW', 'Vinner', 'Poeng']
         return result
 
     result = render_template('main_page.html', tables=[getTabell().to_html(classes='tabeller'), 
