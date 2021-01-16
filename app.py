@@ -218,7 +218,7 @@ def index():
                         if spillerpos == atts:
                             countAtt += 1
                         
-            return spillerListe[0:14][['element', 'multiplier']]
+            return spillerListe[0:15][['element', 'multiplier']]
 
         # Live bonus
 
