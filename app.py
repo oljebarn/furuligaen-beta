@@ -243,7 +243,7 @@ def index():
                         samlet = stats_a.append(stats_h)
                         sort = samlet.sort_values(by=['value'], ascending=False)
                         ferdig = sort.reset_index(drop=True)
-                        bps = ferdig[0:6].copy()
+                        bps = ferdig[0:8].copy()
                         elements = elements.append(bps, ignore_index = True, sort = False)
                         
                         first = False
